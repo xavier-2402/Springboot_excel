@@ -7,10 +7,16 @@ package com.example.DocuemntosExcel.Controller;
 
 import com.example.DocuemntosExcel.Model.Cliente;
 import com.example.DocuemntosExcel.Service.ClienteService;
+import com.example.DocuemntosExcel.util.ExcelExporter;
 import com.example.DocuemntosExcel.util.ExcelGenerator;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -21,6 +27,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.view.document.AbstractXlsxView;
 
 /**
  *
@@ -29,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/customer")
 @CrossOrigin(origins="*")
-public class ClienteController {
+public class ClienteController{
     
     @Autowired
     ClienteService clienteservice;
@@ -63,11 +70,25 @@ public class ClienteController {
     // return IOUtils.toByteArray(in);
     
     HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "attachment; filename=customers.xlsx");
+        headers.add("Content-Disposition", "attachment; filename=\"listcustomers.xlsx\"");
     
      return ResponseEntity
                   .ok()
                   .headers(headers)
                   .body(new InputStreamResource(in));
+    }
+    
+     //GET EXCEL2
+     @GetMapping(path = "/download")
+    
+    public void exportExcel(HttpServletResponse response) throws IOException{
+        response.setContentType("application/octet-stream");
+        String header = "Content-Disposition";
+        String headervalue = "attachment; filename=liscustomers.xlsx";
+        response.setHeader(header, headervalue);
+        
+        List<Cliente> listaclientes = clienteservice.listarClientes();
+        ExcelExporter excelexport = new ExcelExporter(listaclientes);
+        excelexport.exportData(response);
     }
 }
